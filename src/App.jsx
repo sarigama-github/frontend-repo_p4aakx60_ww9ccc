@@ -123,6 +123,29 @@ function ExchangeTool() {
   )
 }
 
+function ConverterTool() {
+  const [from, setFrom] = useState('USD')
+  const [to, setTo] = useState('EUR')
+  const [amount, setAmount] = useState(100)
+  const [res, setRes] = useState(null)
+  const convert = async (e) => {
+    e?.preventDefault()
+    const r = await fetch(`${backendBase}/api/convert?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&amount=${encodeURIComponent(amount)}`)
+    setRes(await r.json())
+  }
+  return (
+    <form onSubmit={convert} className="space-y-3">
+      <div className="grid grid-cols-3 gap-2">
+        <input value={from} onChange={e=>setFrom(e.target.value)} className="border rounded px-3 py-2" placeholder="From" />
+        <input value={to} onChange={e=>setTo(e.target.value)} className="border rounded px-3 py-2" placeholder="To" />
+        <input type="number" value={amount} onChange={e=>setAmount(Number(e.target.value))} className="border rounded px-3 py-2" placeholder="Amount" />
+      </div>
+      <button className="px-3 py-2 bg-indigo-600 text-white rounded">Convert</button>
+      {res && <p className="text-sm">{res.amount} {res.from} ≈ <span className="font-semibold">{res.result}</span> {res.to}</p>}
+    </form>
+  )
+}
+
 function WeatherTool() {
   const [city, setCity] = useState('London')
   const [data, setData] = useState(null)
@@ -145,6 +168,44 @@ function WeatherTool() {
           <pre className="bg-gray-900 text-gray-100 p-4 rounded text-xs overflow-auto min-h-[120px]">{JSON.stringify(data, null, 2)}</pre>
         </div>
       )}
+    </form>
+  )
+}
+
+function TimezoneTool() {
+  const [tz, setTz] = useState('Etc/UTC')
+  const [data, setData] = useState(null)
+  const run = async (e) => {
+    e?.preventDefault()
+    const r = await fetch(`${backendBase}/api/timezone?tz=${encodeURIComponent(tz)}`)
+    setData(await r.json())
+  }
+  return (
+    <form onSubmit={run} className="space-y-3">
+      <input value={tz} onChange={e=>setTz(e.target.value)} className="w-full border rounded px-3 py-2" placeholder="Timezone (e.g., Europe/London)" />
+      <button className="px-3 py-2 bg-indigo-600 text-white rounded">Get Time</button>
+      {data && <pre className="bg-gray-900 text-gray-100 p-4 rounded text-xs overflow-auto min-h-[120px]">{JSON.stringify(data, null, 2)}</pre>}
+    </form>
+  )
+}
+
+function HolidaysTool() {
+  const [country, setCountry] = useState('US')
+  const [year, setYear] = useState(new Date().getFullYear())
+  const [data, setData] = useState(null)
+  const run = async (e) => {
+    e?.preventDefault()
+    const r = await fetch(`${backendBase}/api/holidays?country=${encodeURIComponent(country)}&year=${encodeURIComponent(year)}`)
+    setData(await r.json())
+  }
+  return (
+    <form onSubmit={run} className="space-y-3">
+      <div className="flex gap-2">
+        <input value={country} onChange={e=>setCountry(e.target.value)} className="border rounded px-3 py-2 w-28" />
+        <input type="number" value={year} onChange={e=>setYear(Number(e.target.value))} className="border rounded px-3 py-2 w-28" />
+        <button className="px-3 py-2 bg-indigo-600 text-white rounded">Get Holidays</button>
+      </div>
+      {data && <pre className="bg-gray-900 text-gray-100 p-4 rounded text-xs overflow-auto min-h-[160px]">{JSON.stringify(data, null, 2)}</pre>}
     </form>
   )
 }
@@ -265,12 +326,152 @@ function EmailValidatorTool() {
   )
 }
 
+function NASAAPODTool() {
+  const [date, setDate] = useState('')
+  const [data, setData] = useState(null)
+  const run = async (e) => {
+    e?.preventDefault()
+    const r = await fetch(`${backendBase}/api/nasa-apod${date ? `?date=${encodeURIComponent(date)}` : ''}`)
+    setData(await r.json())
+  }
+  useEffect(()=>{ run({preventDefault: ()=>{}}) }, [])
+  return (
+    <form onSubmit={run} className="space-y-3">
+      <input type="date" value={date} onChange={e=>setDate(e.target.value)} className="border rounded px-3 py-2" />
+      <button className="px-3 py-2 bg-indigo-600 text-white rounded">Fetch APOD</button>
+      {data && (
+        <div className="space-y-2">
+          <h4 className="font-semibold">{data.title}</h4>
+          {data.media_type === 'image' && <img src={data.url} alt={data.title} className="rounded border max-h-80" />}
+          <p className="text-sm text-gray-700">{data.explanation}</p>
+        </div>
+      )}
+    </form>
+  )
+}
+
+function DictionaryTool() {
+  const [word, setWord] = useState('example')
+  const [data, setData] = useState(null)
+  const run = async (e) => {
+    e?.preventDefault()
+    const r = await fetch(`${backendBase}/api/dictionary?word=${encodeURIComponent(word)}`)
+    setData(await r.json())
+  }
+  useEffect(()=>{ run({preventDefault: ()=>{}}) }, [])
+  return (
+    <form onSubmit={run} className="space-y-3">
+      <input value={word} onChange={e=>setWord(e.target.value)} className="w-full border rounded px-3 py-2" />
+      <button className="px-3 py-2 bg-indigo-600 text-white rounded">Lookup</button>
+      {data && <pre className="bg-gray-900 text-gray-100 p-4 rounded text-xs overflow-auto min-h-[160px]">{JSON.stringify(data, null, 2)}</pre>}
+    </form>
+  )
+}
+
+function PokemonTool() {
+  const [name, setName] = useState('ditto')
+  const [data, setData] = useState(null)
+  const run = async (e) => {
+    e?.preventDefault()
+    const r = await fetch(`${backendBase}/api/pokemon?name=${encodeURIComponent(name)}`)
+    setData(await r.json())
+  }
+  useEffect(()=>{ run({preventDefault: ()=>{}}) }, [])
+  return (
+    <form onSubmit={run} className="space-y-3">
+      <input value={name} onChange={e=>setName(e.target.value)} className="w-full border rounded px-3 py-2" />
+      <button className="px-3 py-2 bg-indigo-600 text-white rounded">Fetch</button>
+      {data && (
+        <div className="space-y-2">
+          <p className="font-semibold capitalize">{data.name} (#{data.id})</p>
+          {data.sprites?.front_default && <img src={data.sprites.front_default} alt={data.name} className="h-24" />}
+          <p className="text-sm text-gray-700">Types: {data.types?.join(', ')}</p>
+        </div>
+      )}
+    </form>
+  )
+}
+
+function MealTool() {
+  const [q, setQ] = useState('chicken')
+  const [data, setData] = useState(null)
+  const run = async (e) => {
+    e?.preventDefault()
+    const r = await fetch(`${backendBase}/api/meal?search=${encodeURIComponent(q)}`)
+    setData(await r.json())
+  }
+  useEffect(()=>{ run({preventDefault: ()=>{}}) }, [])
+  return (
+    <form onSubmit={run} className="space-y-3">
+      <input value={q} onChange={e=>setQ(e.target.value)} className="w-full border rounded px-3 py-2" />
+      <button className="px-3 py-2 bg-indigo-600 text-white rounded">Search</button>
+      {data && <pre className="bg-gray-900 text-gray-100 p-4 rounded text-xs overflow-auto min-h-[160px]">{JSON.stringify(data, null, 2)}</pre>}
+    </form>
+  )
+}
+
+function ColorTool() {
+  const [hex, setHex] = useState('#ff5733')
+  const [data, setData] = useState(null)
+  const run = async (e) => {
+    e?.preventDefault()
+    const r = await fetch(`${backendBase}/api/color?hex=${encodeURIComponent(hex)}`)
+    setData(await r.json())
+  }
+  useEffect(()=>{ run({preventDefault: ()=>{}}) }, [])
+  return (
+    <form onSubmit={run} className="space-y-3">
+      <input value={hex} onChange={e=>setHex(e.target.value)} className="w-full border rounded px-3 py-2" />
+      <button className="px-3 py-2 bg-indigo-600 text-white rounded">Get Color</button>
+      {data && (
+        <div className="space-y-2">
+          <div className="w-16 h-16 rounded border" style={{ background: data.hex?.value || hex }} />
+          <pre className="bg-gray-900 text-gray-100 p-4 rounded text-xs overflow-auto min-h-[120px]">{JSON.stringify(data, null, 2)}</pre>
+        </div>
+      )}
+    </form>
+  )
+}
+
+function UserAgentTool() {
+  const [data, setData] = useState(null)
+  useEffect(()=>{ (async ()=>{
+    const r = await fetch(`${backendBase}/api/user-agent`)
+    setData(await r.json())
+  })() }, [])
+  return (
+    <div className="space-y-3">
+      <pre className="bg-gray-900 text-gray-100 p-4 rounded text-xs overflow-auto min-h-[140px]">{data ? JSON.stringify(data, null, 2) : '...'}
+      </pre>
+    </div>
+  )
+}
+
+function FaviconTool() {
+  const [url, setUrl] = useState('https://example.com')
+  const [src, setSrc] = useState('')
+  const run = async (e) => {
+    e?.preventDefault()
+    setSrc(`${backendBase}/api/favicon?url=${encodeURIComponent(url)}&size=64`)
+  }
+  return (
+    <form onSubmit={run} className="space-y-3">
+      <input value={url} onChange={e=>setUrl(e.target.value)} className="w-full border rounded px-3 py-2" />
+      <button className="px-3 py-2 bg-indigo-600 text-white rounded">Get Favicon</button>
+      {src && <img src={src} alt="favicon" className="h-16 w-16 rounded" />}
+    </form>
+  )
+}
+
 const toolComponents = {
   'ip-lookup': IpTool,
   'url-shortener': ShortenerTool,
   'qr-generator': QrTool,
   'exchange-rates': ExchangeTool,
+  'currency-converter': ConverterTool,
   'weather': WeatherTool,
+  'timezone': TimezoneTool,
+  'holidays': HolidaysTool,
   'random-joke': JokeTool,
   'random-quote': QuoteTool,
   'cat-image': CatTool,
@@ -278,6 +479,13 @@ const toolComponents = {
   'uuid': UuidTool,
   'lorem-ipsum': LoremTool,
   'email-validator': EmailValidatorTool,
+  'nasa-apod': NASAAPODTool,
+  'dictionary': DictionaryTool,
+  'pokemon': PokemonTool,
+  'meals': MealTool,
+  'color-info': ColorTool,
+  'user-agent': UserAgentTool,
+  'favicon-fetcher': FaviconTool,
 }
 
 export default function App() {
